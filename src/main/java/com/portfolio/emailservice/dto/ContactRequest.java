@@ -7,7 +7,8 @@ import lombok.Data;
 
 @Data
 public class ContactRequest {
-    @NotBlank(message = "Name is required")
+    // for validating name
+    @NotBlank(message = "Name is required")// this is implemenged by adding de[ency spring-boot-starter-validation
     @Size(min = 2, max = 50, message = "Name must be between 2 and 50 characters")
     private String name;
     @NotBlank(message = "Email is required")
