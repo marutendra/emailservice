@@ -12,4 +12,4 @@ SMTP authentication
 Java
 Spring Boot
 Maven
-Gmail SMTP
+Gmail SMTP 
