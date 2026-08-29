@@ -1,34 +1,52 @@
 package com.portfolio.emailservice.Service;
 
 import com.portfolio.emailservice.dto.ContactRequest;
-import lombok.RequiredArgsConstructor;
-import org.springframework.mail.SimpleMailMessage;
-import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestClient;
+
+import java.util.Map;
 
 @Service
-@RequiredArgsConstructor
 public class EmailService {
-    private final JavaMailSender mailSender;
+
+    private final RestClient restClient;
+
+    @Value("${resend.api-key}")
+    private String resendApiKey;
+
+    public EmailService() {
+        this.restClient = RestClient.builder()
+                .baseUrl("https://api.resend.com")
+                .build();
+    }
+
     public void sendEmail(ContactRequest request) {
-        SimpleMailMessage mail = new SimpleMailMessage();
-        //email - receiver
-        mail.setTo("gfgh17268@gmail.com");
-        // email - reply karne ke liye
-        mail.setReplyTo(request.getEmail());
-        // Subject
-        mail.setSubject(
-                "New Portfolio Message from " + request.getName()
-        );
-        // Email body
-        mail.setText(
+
+        Map<String, Object> body = Map.of(
+                "from", "Portfolio <onboarding@resend.dev>",
+                "to", "gfgh17268@gmail.com",
+                "reply_to", request.getEmail(),
+                "subject", "New Portfolio Message from " + request.getName(),
+                "text",
                 "You received a new message from your portfolio.\n\n" +
                         "Name: " + request.getName() + "\n" +
                         "Email: " + request.getEmail() + "\n\n" +
                         "Message:\n" +
-                        request.getMessage() + "\n\n"
-                      //  + "You can reply directly to this email."
+                        request.getMessage()
         );
-        mailSender.send(mail);
+
+        restClient.post()
+                .uri("/emails")
+                .header(
+                        HttpHeaders.AUTHORIZATION,
+                        "Bearer " + resendApiKey
+                )
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(body)
+                .retrieve()
+                .toBodilessEntity();
     }
 }
